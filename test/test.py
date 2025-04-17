@@ -15,4 +15,10 @@ RF_data = RF_data(Deaths_data=all_data[all_data.measure_name == 'Deaths'],
                   year_start=1990,
                   year_end=2021)
 
-RF_data.get_table_data(index="Deaths")
+# Death
+# RF_data.get_table_data(index="Deaths")
+# DALYs
+# RF_data.get_table_data(index="DALYs (Disability-Adjusted Life Years)")
+
+RF_data.age_5("Deaths", ["China", "High-middle SDI", "Global"])
+RF_data.age_5("DALYs (Disability-Adjusted Life Years)", ["China", "High-middle SDI", "Global"])

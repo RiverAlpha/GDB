@@ -1,6 +1,7 @@
 #!/user/bin/env python3
 # _*_ coding: utf-8 _*_
 # 此类用于预处理原始文件
+import math
 import zipfile
 import os
 import pandas as pd
@@ -41,3 +42,9 @@ def mergeData_with_ageId():
                  inplace=True)
     return alldata.sort_values(by="location_name")
 
+
+# 输入两个数 a,b a向上增加得到d 得到最小的d能整除b
+def smallest_divisible_d(a, b):
+    return math.ceil(a / b) * b
+
+print(smallest_divisible_d(190,50))
