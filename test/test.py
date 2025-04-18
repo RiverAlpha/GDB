@@ -4,6 +4,8 @@
 from Utils import dataUtils
 from Data import RF_data
 
+country_list = ["Low SDI", "Low-middle SDI", "Middle SDI", "High-middle SDI", "High SDI", "China", "Global"]
+
 # 解压数据
 # dataUtils.unzipData()
 # 合并数据
@@ -20,5 +22,24 @@ RF_data = RF_data(Deaths_data=all_data[all_data.measure_name == 'Deaths'],
 # DALYs
 # RF_data.get_table_data(index="DALYs (Disability-Adjusted Life Years)")
 
-RF_data.age_5("Deaths", ["China", "High-middle SDI", "Global"])
-RF_data.age_5("DALYs (Disability-Adjusted Life Years)", ["China", "High-middle SDI", "Global"])
+# RF_data.age_5("Deaths", ["China", "High-middle SDI", "Global"])
+# RF_data.age_5("DALYs (Disability-Adjusted Life Years)", ["China", "High-middle SDI", "Global"])
+
+# RF_data.Lines(country_list=["China", "High-middle SDI", "Global"],measure="Deaths",age="Age-standardized",
+# metrics="Rate",sex="Both")
+
+# RF_data.Lines(country_list=["China", "High-middle SDI", "Global"],
+#               measure="DALYs",
+#               age="Age-standardized",
+#               metrics="Rate",
+#               sex="Both")
+
+# RF_data.Line_sex(country_list=["High-middle SDI","China","Global"],
+# #                  measure="DALYs",
+# #                  age="Age-standardized",
+# #                  metrics="Rate")
+
+RF_data.Line_sex(country_list=["High-middle SDI", "China", "Global"],
+                 measure="Deaths",
+                 age="Age-standardized",
+                 metrics="Rate")

@@ -7,8 +7,9 @@ from paperData import paperData
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import  math
-from Utils import  dataUtils
+import math
+from Utils import dataUtils
+
 
 class RF_data:
 
@@ -71,9 +72,10 @@ class RF_data:
         if index == "Deaths":
             data = self.Deaths_data
         elif index == "DALYs (Disability-Adjusted Life Years)" or "DALYs":
+            index = "DALYs (Disability-Adjusted Life Years)"
             data = self.DALYs_data
         else:
-            print("指标错误！！！！！")
+            print("暂未收录该指标！")
             return -1
         # 筛选数据
         data = data[(data.location_name.isin(country_list))
@@ -87,6 +89,7 @@ class RF_data:
             country_data = data[data.location_name == country]
             # 数据
             age_groups = country_data.loc[country_data.sex_name == 'Female'].age_name.unique()
+            age_groups = [i.replace(" years", "") for i in age_groups]
             male_rates = country_data.loc[country_data.sex_name == 'Male'].val.values
             female_rates = country_data.loc[country_data.sex_name == 'Female'].val.values
 
@@ -120,9 +123,11 @@ class RF_data:
             # 添加零刻度线（黑色虚线）
             plt.axvline(0, color='black', linewidth=1, linestyle='--')
 
+            # 显示网格
+            plt.grid(True, alpha=0.7)
             # 添加标题和标签
-            plt.title('Deaths Rate by Age Group and Sex', fontsize=16)
-            plt.xlabel('Deaths Rate (per 100,000 population)', fontsize=12)
+            # plt.title(f'{index} Rate by Age Group and Sex', fontsize=16)
+            plt.xlabel(f'{index} Rate (per 100,000 population)', fontsize=12)
             plt.ylabel('Age Group', fontsize=12)
 
             ## 自适应刻度 大于40间隔为2 大于100 间隔为10 大于400 间隔为50
@@ -130,7 +135,7 @@ class RF_data:
             if interval_max < 40:
                 interval = 1
             elif interval_max < 100:
-                interval = 2
+                interval = 5
             elif interval_max < 400:
                 interval = 10
             elif interval_max < 1000:
@@ -140,19 +145,86 @@ class RF_data:
 
             print(-math.ceil(max(female_upper)) - interval, math.ceil(max(male_upper)) + interval, interval)
             # 设置横坐标刻度和标签
-            x_left = -dataUtils.smallest_divisible_d(abs(-math.ceil(max(female_upper)) - interval),interval)
+            x_left = -dataUtils.smallest_divisible_d(abs(-math.ceil(max(female_upper)) - interval), interval)
 
             plt.xticks(np.arange(x_left, math.ceil(max(male_upper)) + interval, interval),
                        [str(abs(x)) for x in
                         np.arange(x_left, math.ceil(max(male_upper)) + interval, interval)],
                        fontsize=10)
 
-            # 显示网格
-            plt.grid(True, alpha=0.7)
-
             # 显示图例
-            plt.legend(loc='upper right', fontsize=12)
+            plt.legend(loc='upper left',  # 初始位置
+                       bbox_to_anchor=(1.02, 1),  # 移到右侧图外（x=1.02 表示图外右侧）
+                       borderaxespad=0)
 
             # 调整布局
             plt.tight_layout()
             plt.savefig(index + "_" + country + "_" + str(self.year_end) + ".png")
+
+    # 性别不共图
+    def Lines(self, country_list, measure, age, metrics, sex):
+        # 根据指标匹配数据
+        if measure == "Deaths":
+            data = self.Deaths_data
+        elif measure == "DALYs (Disability-Adjusted Life Years)" or "DALYs":
+            measure = "DALYs (Disability-Adjusted Life Years)"
+            data = self.DALYs_data
+        else:
+            print("暂未收录该指标！")
+            return -1
+        #
+        data = data[(data.location_name.isin(country_list))
+                    & (data.sex_name == sex)
+                    & (data.metric_name == metrics)
+                    & (data.age_name == age)].sort_values(
+            by=["location_name", "year"])
+        plt.figure(figsize=(12, 8))
+        x = list(data.year.unique())
+        for country in country_list:
+            plt.plot(x, list(data[data.location_name == country].val.values), label=country)
+        plt.xlabel("year")
+        if metrics == "Rate" and age == "Age-standardized":
+            plt.ylabel(f"{measure} Rate (per 100,000)")
+        elif metrics == "Rate" and age == "All ages":
+            plt.ylabel(f"{measure} Rate (per 100,000)")
+        elif metrics == "Number":
+            plt.ylabel(f"{measure} Case")
+
+        plt.legend()
+        plt.grid()
+        plt.savefig(f"{measure}-{metrics}-{self.year_start}--{self.year_end}.png")
+
+    # 某指标下不同性别
+    def Line_sex(self, country_list, measure, age, metrics):
+        # 根据指标匹配数据
+        if measure == "Deaths":
+            data = self.Deaths_data
+        elif measure == "DALYs (Disability-Adjusted Life Years)" or "DALYs":
+            measure = "DALYs (Disability-Adjusted Life Years)"
+            data = self.DALYs_data
+        else:
+            print("暂未收录该指标！")
+            return -1
+        #
+        data = data[(data.location_name.isin(country_list))
+                    & (data.sex_name != "Both")
+                    & (data.metric_name == metrics)
+                    & (data.age_name == age)].sort_values(
+            by=["location_name", "year"])
+        plt.figure(figsize=(12, 8))
+        x = list(data.year.unique())
+        for country in country_list:
+            male_data = list(data[(data.sex_name == "Male") & (data.location_name == country)].val.values)
+            female_data = list(data[(data.sex_name == "Female") & (data.location_name == country)].val.values)
+            plt.plot(x, male_data, label=f"{country} Male", linestyle='-.')
+            plt.plot(x, female_data, label=f"{country} Male")
+        plt.xlabel("year")
+        if metrics == "Rate" and age == "Age-standardized":
+            plt.ylabel(f"{measure} Rate (per 100,000)")
+        elif metrics == "Rate" and age == "All ages":
+            plt.ylabel(f"{measure} Rate (per 100,000)")
+        elif metrics == "Number":
+            plt.ylabel(f"{measure} Case")
+        plt.legend()
+        plt.grid()
+        plt.savefig(f"{measure}-{metrics}_Males&Females.png")
