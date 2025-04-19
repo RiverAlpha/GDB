@@ -39,7 +39,25 @@ RF_data = RF_data(Deaths_data=all_data[all_data.measure_name == 'Deaths'],
 # #                  age="Age-standardized",
 # #                  metrics="Rate")
 
-RF_data.Line_sex(country_list=["High-middle SDI", "China", "Global"],
-                 measure="Deaths",
-                 age="Age-standardized",
-                 metrics="Rate")
+# RF_data.Line_sex(country_list=["High-middle SDI", "China", "Global"],
+#                  measure="Deaths",
+#                  age="Age-standardized",
+#                  metrics="Rate")
+
+# RF_data.Bar_Number(country_list=["High-middle SDI", "China", "Global"],
+#                    measure="Deaths",
+#                    age="All ages",
+#                    metrics="Number")
+
+# RF_data.Bar_Number(country_list=["High-middle SDI", "China", "Global"],
+#                    measure="DALYs",
+#                    age="All ages",
+#                    metrics="Number")
+
+# 合成ASXR
+RF_data.Merge_X_ASR("Deaths")
+RF_data.Merge_X_ASR("DALYs")
+
+# 生成散点
+RF_data.Scatter_country("Deaths", 10)
+RF_data.Scatter_country("DALYs", 10)

@@ -9,13 +9,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 from Utils import dataUtils
+from adjustText import adjust_text
 
 
 class RF_data:
 
-    def __init__(self, Deaths_data, DALYs_data, Country, year_start, year_end):
+    def __init__(self, Deaths_data, DALYs_data, Country, year_start, year_end, SDI_ASR_DEATH=None, SDI_ASR_DALYs=None):
         # 此处数据为纯数据
         # 鉴于数据可能会有不同的情况 1.比如多个文件待合并 2.包含IDs 3.不包含IDs
+        self.SDI_ASR_DALYs = SDI_ASR_DALYs
+        self.SDI_ASR_DEATH = SDI_ASR_DEATH
         self.year_end = year_end
         self.year_start = year_start
         self.Country = Country
@@ -228,3 +231,175 @@ class RF_data:
         plt.legend()
         plt.grid()
         plt.savefig(f"{measure}-{metrics}_Males&Females.png")
+
+    # 柱状图（Number）
+    def Bar_Number(self, country_list, measure, age, metrics):
+        # 根据指标匹配数据
+        if measure == "Deaths":
+            data = self.Deaths_data
+        elif measure == "DALYs (Disability-Adjusted Life Years)" or "DALYs":
+            measure = "DALYs (Disability-Adjusted Life Years)"
+            data = self.DALYs_data
+        else:
+            print("暂未收录该指标！")
+            return -1
+        data = data[(data.location_name.isin(country_list))
+                    & (data.sex_name != "Both")
+                    & (data.metric_name == metrics)
+                    & (data.age_name == age)].sort_values(by=["location_name", "sex_name", "year"])
+
+        year = list(data.year.unique())
+        # 根据输入的国家进行绘制图的数量 并排描绘
+        # 如果需要男女比例图 pie = True
+        fig, axes = plt.subplots(len(country_list), 2, figsize=(15, 5 * len(country_list)))
+
+        # 如果只有一个位置 调整axes的形状
+        if len(country_list) == 1:
+            axes = axes.reshape(1, -1)
+
+        # 循环遍历每个位置
+        for i, location in enumerate(country_list):
+            # 获取当前位置的男性和女性数据
+            male_data = list(data[(data['sex_name'] == "Male") &
+                                  (data['location_name'] == location)].val.values)
+            female_data = list(data[(data['sex_name'] == "Female") &
+                                    (data['location_name'] == location)].val.values)
+            # 绘制柱状图
+            ax_bar = axes[i, 0]
+            ax_bar.bar(year, male_data, label='Male')
+            ax_bar.bar(year, female_data, bottom=male_data, label='Female')
+            ax_bar.set_xlabel('year')
+            ax_bar.set_ylabel('case (per 100,000)')
+            ax_bar.set_title(f'{location} - {measure} by Year')
+            ax_bar.legend()
+            ax_bar.grid(True)
+
+            # 绘制饼图
+            ax_pie = axes[i, 1]
+            sizes = [sum(male_data), sum(female_data)]
+            labels = ['Male', 'Female']
+            ax_pie.pie(sizes, labels=labels, autopct='%.1f%%')
+            ax_pie.set_title(f'{location} - Gender Distribution')
+
+        # 调整布局
+        plt.tight_layout()
+        # plt.suptitle("DALYs Number & Ratio by Location and Gender", y=1.02, fontsize=14)
+        plt.savefig(f"{measure}_{metrics}_bar.png")
+
+    # 合并ASXR数据 和SDI
+    # num： 图中标注显示的国家数量（前几位）
+    def Merge_X_ASR(self, measure):
+        # 根据指标匹配数据
+        if measure == "Deaths":
+            data = self.Deaths_data
+        elif measure == "DALYs (Disability-Adjusted Life Years)" or "DALYs":
+            data = self.DALYs_data
+        else:
+            print("指标错误！！！！！")
+            return -1
+        # ASR趋势文件
+        data = data[(data.sex_name == "Both")
+                    & (data.metric_name == "Rate")
+                    & (data.age_name.isin(["Age-standardized"]))].sort_values(
+            by=['location_name', 'year'])
+        data = data[["location_name", "year", "val"]]
+        SDI_data = pd.read_csv("../source/comon_data/IHME_GBD_SDI_2021_SDI_1950_2021_Y2024M05D16.csv")
+        SDI_data = SDI_data.rename(columns={"year_id": "year"})[["location_name", "year", "mean_value"]]
+        SDI_data.sort_values(by=['location_name', 'year'])
+        merged_df = pd.merge(data, SDI_data, on=['location_name', 'year'], how='inner')
+        merged_df = merged_df[merged_df.year.isin([self.year_start, self.year_end])]
+        # 去掉重复行
+        merged_df[merged_df.duplicated(subset=['location_name', 'year'], keep=False)]
+        # 处理重复值（取平均值）
+        merged_df = merged_df.groupby(['location_name', 'year'], as_index=False).mean()
+
+        if measure == "Deaths":
+            self.SDI_ASR_DEATH = merged_df
+        elif measure == "DALYs (Disability-Adjusted Life Years)" or "DALYs":
+            self.SDI_ASR_DALYs = merged_df
+
+    # 全球国家散点
+    def Scatter_country(self, measure, num):
+        # 根据指标匹配数据
+        if measure == "Deaths":
+            data = self.SDI_ASR_DEATH
+        elif measure == "DALYs (Disability-Adjusted Life Years)" or "DALYs":
+            data = self.SDI_ASR_DALYs
+        else:
+            print("指标错误！！！！！")
+            return -1
+
+        label_country = data[data.year == self.year_end].sort_values(by="val", ascending=False).head(
+            num).location_name.unique()
+
+        df_wide = data.pivot(index='location_name', columns='year', values=['mean_value', 'val'])
+        # 计算 ASR 变化
+        df_wide['ASR_Change'] = df_wide['val'][self.year_end] - df_wide['val'][self.year_start]
+        df_wide['Increase'] = np.where(df_wide['ASR_Change'] > 0, 1, 0)
+
+        # 重置索引
+        df_wide = df_wide.reset_index()
+        # 扁平化列名（解决多级列名问题）
+        df_wide.columns = ['_'.join(map(str, col)) for col in df_wide.columns]
+
+        # 计算值变化
+        df_wide['val_Change'] = df_wide[f'val_{self.year_end}'] - df_wide[f'val_{self.year_start}']
+        # 设置颜色
+        df_wide['Color'] = np.where(df_wide['val_Change'] > 0, 'red', 'green')
+        # 清理 location_name
+        df_wide['location_name_'] = df_wide['location_name_'].str.strip().str.replace('\n', ' ')
+
+        # 绘制散点图
+        plt.figure(figsize=(12, 8))
+        scatter = plt.scatter(df_wide[f'mean_value_{self.year_end}'],
+                              df_wide[f'val_{self.year_end}'],
+                              c=df_wide['Color'],
+                              alpha=0.7)
+
+        for color, label in zip(['red', 'green'], ['Increase', 'Decrease/No Change']):
+            subset = df_wide[df_wide['Increase_'] == (1 if label == 'Increase' else 0)]
+            plt.scatter(subset[f'mean_value_{self.year_end}'], subset[f'val_{self.year_end}'], color=color, label=label,
+                        alpha=0.7)
+
+        # 准备需要标注的国家列表
+        countries_to_label = label_country
+
+        # 使用adjust_text自动调整注释位置
+        texts = []
+        for i, row in df_wide.iterrows():
+            if row['location_name_'] in countries_to_label:
+                texts.append(plt.text(row[f'mean_value_{self.year_end}'],
+                                      row[f'val_{self.year_end}'],
+                                      row['location_name_'],
+                                      fontsize=10,
+                                      ha='center',
+                                      va='center'))
+
+        ## 自动调整注释位置避免重叠
+        # adjust_text(texts,
+        #             arrowprops=dict(arrowstyle='->', color='black', lw=0.5, alpha=0.5,  # 透明度
+        #                             shrinkA=10,  # 起点收缩距离
+        #                             shrinkB=10),
+        #             expand_points=(1.5, 1.5),  # 扩大搜索空间
+        #             expand_text=(1.2, 1.2),  # 扩大文本间距
+        #             force_text=(0.5, 0.5),  # 调整文本间的排斥力
+        #             only_move={'points': 'y', 'text': 'xy'})  # 限制移动方向
+
+        # 自动调整注释位置避免重叠
+        adjust_text(texts,
+                    expand_points=(1.5, 1.5),  # 扩大搜索空间
+                    expand_text=(1.2, 1.2),  # 扩大文本间距
+                    force_text=(0.5, 0.5),  # 调整文本间的排斥力
+                    only_move={'points': 'y', 'text': 'xy'})  # 限制移动方向
+
+        # 添加标题和标签
+        plt.title(f'{measure} ASR in {self.year_end} vs SDI (Compared to {self.year_start})', fontsize=16)
+        plt.xlabel(f'SDI ({self.year_end})', fontsize=12)
+        plt.ylabel(f'{measure} ASR ({self.year_end})', fontsize=12)
+
+        # 添加网格
+        plt.grid(True, alpha=0.3)
+        plt.legend()
+
+        plt.tight_layout()
+        plt.savefig(f"{measure}_{self.year_start}_{self.year_end}_Scatter.png")

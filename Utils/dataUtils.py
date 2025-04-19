@@ -47,4 +47,4 @@ def mergeData_with_ageId():
 def smallest_divisible_d(a, b):
     return math.ceil(a / b) * b
 
-print(smallest_divisible_d(190,50))
+
