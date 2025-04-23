@@ -3,6 +3,20 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
+        <entry key="\source\JoinPoint_Outcome\DALYs_AAPC.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\source\JoinPoint_Outcome\deaths_aapc.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\source\Prediction\age_rate_mean.csv">
           <value>
             <Attribute>
@@ -24,14 +38,21 @@
             </Attribute>
           </value>
         </entry>
-        <entry key="\source\Prediction\prediction_num.csv">
+        <entry key="\source\comon_data\age_stand1.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />
             </Attribute>
           </value>
         </entry>
-        <entry key="\source\Prediction\prediction_rate.csv">
+        <entry key="\source\toJPData\DALYs_AAPC.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\source\toJPData\Deaths_AAPC.csv">
           <value>
             <Attribute>
               <option name="separator" value="," />

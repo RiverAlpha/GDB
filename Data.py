@@ -14,9 +14,11 @@ from adjustText import adjust_text
 
 class RF_data:
 
-    def __init__(self, Deaths_data, DALYs_data, Country, year_start, year_end, SDI_ASR_DEATH=None, SDI_ASR_DALYs=None):
+    def __init__(self, Deaths_data, DALYs_data, Country, year_start, year_end, SDI_ASR_DEATH=None, SDI_ASR_DALYs=None,
+                 AAPC_DATA=None):
         # 此处数据为纯数据
         # 鉴于数据可能会有不同的情况 1.比如多个文件待合并 2.包含IDs 3.不包含IDs
+        self.AAPC_DATA = AAPC_DATA
         self.SDI_ASR_DALYs = SDI_ASR_DALYs
         self.SDI_ASR_DEATH = SDI_ASR_DEATH
         self.year_end = year_end
@@ -67,6 +69,7 @@ class RF_data:
                        "Relative_change_of_Rate(%)"]]
 
         csv_data = pd.merge(Ndata, Rdata, on="location_name")
+        plt.tight_layout()
         csv_data.to_csv(index + "_" + str(self.year_start) + "--" + str(self.year_end) + ".csv")
 
     # 某一指标下年龄段图像
@@ -162,7 +165,7 @@ class RF_data:
 
             # 调整布局
             plt.tight_layout()
-            plt.savefig(index + "_" + country + "_" + str(self.year_end) + ".png")
+            plt.savefig("Age_group_" + index + "_" + country + "_" + str(self.year_end) + ".png")
 
     # 性别不共图
     def Lines(self, country_list, measure, age, metrics, sex):
@@ -195,7 +198,8 @@ class RF_data:
 
         plt.legend()
         plt.grid()
-        plt.savefig(f"{measure}-{metrics}-{self.year_start}--{self.year_end}.png")
+        plt.tight_layout()
+        plt.savefig(f"Line_{measure}-{metrics}-{self.year_start}--{self.year_end}.png")
 
     # 某指标下不同性别
     def Line_sex(self, country_list, measure, age, metrics):
@@ -230,7 +234,8 @@ class RF_data:
             plt.ylabel(f"{measure} Case")
         plt.legend()
         plt.grid()
-        plt.savefig(f"{measure}-{metrics}_Males&Females.png")
+        plt.tight_layout()
+        plt.savefig(f"Line_sex_{measure}-{metrics}_Males&Females.png")
 
     # 柱状图（Number）
     def Bar_Number(self, country_list, measure, age, metrics):
@@ -284,7 +289,8 @@ class RF_data:
         # 调整布局
         plt.tight_layout()
         # plt.suptitle("DALYs Number & Ratio by Location and Gender", y=1.02, fontsize=14)
-        plt.savefig(f"{measure}_{metrics}_bar.png")
+
+        plt.savefig(f"Bar_{measure}_{metrics}_bar.png")
 
     # 合并ASXR数据 和SDI
     # num： 图中标注显示的国家数量（前几位）
@@ -402,4 +408,26 @@ class RF_data:
         plt.legend()
 
         plt.tight_layout()
-        plt.savefig(f"{measure}_{self.year_start}_{self.year_end}_Scatter.png")
+        plt.savefig(f"Scatter_{measure}_{self.year_start}_{self.year_end}_Scatter.png")
+
+    # 获取dalys ASR和Deaths ASR 用于JP计算AAPC
+    def toJPData(self, measure_list, country_list):
+        for measure in measure_list:
+            # 根据指标匹配数据
+            if measure == "Deaths":
+                data = self.Deaths_data
+            elif measure == "DALYs (Disability-Adjusted Life Years)" or "DALYs":
+                data = self.DALYs_data
+            else:
+                print("指标错误！！！！！")
+                return -1
+            data = data[(data["age_name"] == "Age-standardized")
+                        & (data["metric_name"] == "Rate")
+                        & (data["sex_name"] == "Both")
+                        & (data["location_name"].isin(country_list))].sort_values(
+                by=["location_name", "year"])
+            # 计算标准误差
+            data["SE"] = (data.upper - data.lower) / (2 * 1.96)
+            data = data[['location_name', 'year', 'val', 'SE']]
+            data.rename(columns={"val": "AAPC"}, inplace=True)
+            data.to_csv(f"../source/toJPData/{measure}_AAPC.csv")
