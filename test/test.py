@@ -39,15 +39,15 @@ RF_data = RF_data(Deaths_data=all_data[all_data.measure_name == 'Deaths'],
 #               metrics="Rate",
 #               sex="Both")
 #
-RF_data.Line_sex(country_list=["High-middle SDI","China","Global"],
-                 measure="DALYs",
-                 age="Age-standardized",
-                 metrics="Rate")
-
-RF_data.Line_sex(country_list=["High-middle SDI", "China", "Global"],
-                 measure="Deaths",
-                 age="Age-standardized",
-                 metrics="Rate")
+# RF_data.Line_sex(country_list=["High-middle SDI","China","Global"],
+#                  measure="DALYs",
+#                  age="Age-standardized",
+#                  metrics="Rate")
+#
+# RF_data.Line_sex(country_list=["High-middle SDI", "China", "Global"],
+#                  measure="Deaths",
+#                  age="Age-standardized",
+#                  metrics="Rate")
 #
 # RF_data.Bar_Number(country_list=["High-middle SDI", "China", "Global"],
 #                    measure="Deaths",
@@ -60,8 +60,10 @@ RF_data.Line_sex(country_list=["High-middle SDI", "China", "Global"],
 #                    metrics="Number")
 #
 # # 合成ASXR
-# RF_data.Merge_X_ASR("Deaths")
-# RF_data.Merge_X_ASR("DALYs")
+RF_data.Merge_X_ASR("Deaths")
+RF_data.Merge_X_ASR("DALYs")
+
+
 #
 # # 生成散点
 # RF_data.Scatter_country("Deaths", 10)

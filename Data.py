@@ -321,8 +321,10 @@ class RF_data:
 
         if measure == "Deaths":
             self.SDI_ASR_DEATH = merged_df
+            self.SDI_ASR_DEATH.to_csv("../source/ToRData/SDI_deaths_ASR.csv")
         elif measure == "DALYs (Disability-Adjusted Life Years)" or "DALYs":
             self.SDI_ASR_DALYs = merged_df
+            self.SDI_ASR_DALYs.to_csv("../source/ToRData/SDI_dalys_ASR.csv")
 
     # 全球国家散点
     def Scatter_country(self, measure, num):

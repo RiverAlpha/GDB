@@ -38,6 +38,20 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\source\ToRData\SDI_dalys_ASR.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\source\ToRData\SDI_deaths_ASR.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\source\comon_data\age_stand1.csv">
           <value>
             <Attribute>
