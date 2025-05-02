@@ -224,7 +224,7 @@ class RF_data:
             male_data = list(data[(data.sex_name == "Male") & (data.location_name == country)].val.values)
             female_data = list(data[(data.sex_name == "Female") & (data.location_name == country)].val.values)
             plt.plot(x, male_data, label=f"{country} Male", linestyle='-.')
-            plt.plot(x, female_data, label=f"{country} Male")
+            plt.plot(x, female_data, label=f"{country} Female")
         plt.xlabel("year")
         if metrics == "Rate" and age == "Age-standardized":
             plt.ylabel(f"{measure} Rate (per 100,000)")

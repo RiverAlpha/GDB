@@ -20,7 +20,7 @@ RF_data = RF_data(Deaths_data=all_data[all_data.measure_name == 'Deaths'],
 
 ####
 # 获取dalys ASR和Deaths ASR 用于JP计算AAPC
-RF_data.toJPData(["Deaths", "DALYs"], country_list=["High-middle SDI", "China", "Global"])
+# RF_data.toJPData(["Deaths", "DALYs"], country_list=["High-middle SDI", "China", "Global"])
 
 # # Death
 # RF_data.get_table_data(index="Deaths")
@@ -39,15 +39,15 @@ RF_data.toJPData(["Deaths", "DALYs"], country_list=["High-middle SDI", "China", 
 #               metrics="Rate",
 #               sex="Both")
 #
-# RF_data.Line_sex(country_list=["High-middle SDI","China","Global"],
-#                  measure="DALYs",
-#                  age="Age-standardized",
-#                  metrics="Rate")
-#
-# RF_data.Line_sex(country_list=["High-middle SDI", "China", "Global"],
-#                  measure="Deaths",
-#                  age="Age-standardized",
-#                  metrics="Rate")
+RF_data.Line_sex(country_list=["High-middle SDI","China","Global"],
+                 measure="DALYs",
+                 age="Age-standardized",
+                 metrics="Rate")
+
+RF_data.Line_sex(country_list=["High-middle SDI", "China", "Global"],
+                 measure="Deaths",
+                 age="Age-standardized",
+                 metrics="Rate")
 #
 # RF_data.Bar_Number(country_list=["High-middle SDI", "China", "Global"],
 #                    measure="Deaths",
